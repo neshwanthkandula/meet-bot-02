@@ -74,15 +74,8 @@ app.post("/bot/stop", async (req, res) => {
       session.recordingPath
     );
 
-    // 3. Trigger processing (fire & forget)
-    fetch(`${process.env.PROCESSING_BASE_URL}/process/${meeting_id}`, {
-      method: "POST",
-    }).catch((err) =>
-      console.error("PROCESSING_TRIGGER_FAILED:", err.message)
-    );
-
-    //
-    await axios.post(`${process.env.BBACKEND_BASE_URL}/api/meetings/${id}/stop`);
+    //3. stop the bot
+    await axios.post(`${process.env.BACKEND_BASE_URL}/api/meetings/${id}/stop`);
 
     // 4. Cleanup session
     sessions.delete(meetingId);
