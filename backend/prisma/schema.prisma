@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Meeting {
+  id            String   @id @default(uuid())
+  userId        String   // Clerk user id
+
+  meetingUrl    String
+  title String @default("Default")
+  startTime     DateTime
+  endTime       DateTime
+
+  status        MeetingStatus @default(UPCOMING)
+
+  isBotAssigned Boolean @default(false)
+
+  errorReason   String?  // nullable, set only on failure
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum MeetingStatus {
+  UPCOMING
+  RUNNING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
