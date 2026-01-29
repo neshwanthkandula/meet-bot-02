@@ -11,8 +11,15 @@ export async function GET(){
 
         const meeting = await prisma.meeting.findMany({
             where : {
-                userId : userId,
-                status :  "UPCOMING"
+                status :  "UPCOMING",
+                participants : {
+                    some : {
+                        userId : userId
+                    }
+                }
+            },
+            orderBy :{
+                startTime : "asc"
             }
         })
     

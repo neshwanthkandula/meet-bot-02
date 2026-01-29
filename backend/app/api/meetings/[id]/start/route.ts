@@ -19,8 +19,7 @@ export async function POST(
     }
 
     if (
-      meeting.status === "COMPLETED" ||
-      meeting.status === "FAILED" ||
+      meeting.status === "COMPLETED" || meeting.status === "PROCESSING" ||
       meeting.isBotAssigned
     ) {
       return NextResponse.json(

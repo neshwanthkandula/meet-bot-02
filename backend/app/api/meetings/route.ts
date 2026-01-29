@@ -1,93 +1,106 @@
-import { MeetingStatus } from "@/app/generated/prisma/enums";
-import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma"
+import { auth } from "@clerk/nextjs/server"
+import { NextResponse } from "next/server"
+import { MeetingStatus } from "@/app/generated/prisma/enums"
 
-export async function POST(req : Request){
-    console.log("Api point")
-    try{
-        const { userId } = await auth()
-        console.log(userId)
-        if(!userId){
-            return NextResponse.json({error  : "unauthorized"}, {status : 401})
-        }
+export const runtime = "nodejs"
 
-        const { meetingUrl, startTime, endTime  , title} = await req.json()
-        console.log(meetingUrl , startTime, endTime, title)
-        if(!meetingUrl || !startTime || !endTime || !title){
-            return NextResponse.json({error : "missing credentials"}, {status : 400})
-        }
+export async function POST(req: Request) {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+    }
 
-        const start = new Date(startTime)
-        const end = new Date(endTime)
+    const { meetingUrl, startTime, endTime, title } = await req.json()
 
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return NextResponse.json({ error: "invalid date format" }, { status: 400 })
-        }
+    if (!meetingUrl || !startTime || !endTime || !title) {
+      return NextResponse.json({ error: "missing fields" }, { status: 400 })
+    }
 
-        if (end <= start) {
-        return NextResponse.json(
-            { error: "end time must be after start time" },
-            { status: 400 }
-        )
-        }
+    const start = new Date(startTime)
+    const end = new Date(endTime)
 
-        if (end <= new Date()) {
-        return NextResponse.json(
-            { error: "meeting already completed" },
-            { status: 400 }
-        )
-        }
+    if (end <= new Date()) {
+      return NextResponse.json(
+        { error: "meeting already completed" },
+        { status: 400 }
+      )
+    }
 
-        //exsisting meeting or not
-        const exsisting = await prisma.meeting.findMany({
-            where : {
-                userId : userId,
-                meetingUrl : meetingUrl
-            }
-        })
+    if (end <= start) {
+      return NextResponse.json(
+        { error: "endTime must be after startTime" },
+        { status: 400 }
+      )
+    }
 
-        if(exsisting.length > 0){
-            return NextResponse.json({error : "exsisting Meeting"}, {status : 400})
-        }
+    const status: MeetingStatus =
+      start > new Date() ? "UPCOMING" : "RUNNING"
 
-        let status : MeetingStatus = "RUNNING"
-        if(new Date(startTime) > new Date()){
-            status = "UPCOMING"
-        }
+    // --------------------------------------------------
+    // 1️⃣ Create or update meeting (atomic)
+    // --------------------------------------------------
+    const meeting = await prisma.meeting.upsert({
+      where: { meetingUrl },
+      update: {
+        title,
+        startTime: start,
+        endTime: end,
+        status,
+      },
+      create: {
+        meetingUrl,
+        title,
+        startTime: start,
+        endTime: end,
+        status,
+      },
+    })
 
-        const new_meeting = await prisma.meeting.create({
-            data : {
-                meetingUrl : meetingUrl,
-                startTime : startTime,
-                endTime : endTime,
-                title : title,
-                userId : userId,
-                status : status
-            }
-        })
+    // --------------------------------------------------
+    // 2️⃣ Add user as participant (idempotent)
+    // --------------------------------------------------
+    await prisma.meetingParticipant.upsert({
+      where: {
+        meetingId_userId: {
+          meetingId: meeting.id,
+          userId,
+        },
+      },
+      update: {},
+      create: {
+        meetingId: meeting.id,
+        userId,
+      },
+    })
 
-        return NextResponse.json({sucess : "meeting Sucessfully Created"}, {status : 200})
-    }catch(err){
-
-    console.error("internal", err)
-    return NextResponse.json({error : "internal server error"}, {status : 500})
-   }
+    return NextResponse.json(
+      { success: true, meetingId: meeting.id },
+      { status: 200 }
+    )
+  } catch (err) {
+    console.error("Create meeting error:", err)
+    return NextResponse.json(
+      { error: "internal server error" },
+      { status: 500 }
+    )
+  }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const meetings = await prisma.meeting.findMany({
       where: {
         status: {
-          in: ["UPCOMING", "RUNNING"],
+          in: ["RUNNING", "UPCOMING"],
         },
       },
     })
 
     return NextResponse.json({ meetings })
-  } catch (error) {
-    console.error("GET /api/meetings error:", error)
+  } catch (err) {
+    console.error("Fetch meetings error:", err)
     return NextResponse.json(
       { error: "Failed to fetch meetings" },
       { status: 500 }

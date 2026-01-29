@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const { userId } =await  auth()
     if (!userId) {
       return NextResponse.json(
         { error: "unauthorized" },
@@ -14,15 +14,19 @@ export async function GET() {
 
     const meetings = await prisma.meeting.findMany({
       where: {
-        userId,
         status: "COMPLETED",
+        participants: {
+          some: {
+            userId: userId,
+          },
+        },
       },
       orderBy: {
         endTime: "desc",
       },
     })
 
-    return NextResponse.json(meetings )
+    return NextResponse.json(meetings)
   } catch (err) {
     console.error("GET /api/meetings/completed error:", err)
     return NextResponse.json(

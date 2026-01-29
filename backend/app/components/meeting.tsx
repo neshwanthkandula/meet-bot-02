@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import axios from "axios"
+import { useRouter } from "next/navigation"
 import { MeetingStatus } from "../generated/prisma/enums"
 
 export interface Props {
@@ -33,6 +34,7 @@ function statusColor(status: MeetingStatus) {
 function Meeting({ link }: { link: string }) {
   const [meetings, setMeetings] = useState<Props[]>([])
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
     const fetchMeetings = async () => {
@@ -64,33 +66,47 @@ function Meeting({ link }: { link: string }) {
         </div>
       )}
 
-      {meetings.map((meet) => (
-        <div
-          key={meet.id}
-          className="flex items-center justify-between rounded-lg border border-border bg-sidebar-accent/30 p-4"
-        >
-          {/* Left */}
-          <div className="space-y-1">
-            <div className="font-medium text-foreground">
-              {meet.title}
-            </div>
+      {meetings.map((meet) => {
+        const isCompleted = meet.status === "COMPLETED"
 
-            <div className="text-xs text-muted-foreground">
-              {new Date(meet.startTime).toLocaleString()} →{" "}
-              {new Date(meet.endTime).toLocaleString()}
-            </div>
-          </div>
-
-          {/* Right */}
+        return (
           <div
-            className={`rounded-md px-3 py-1 text-xs font-semibold ${statusColor(
-              meet.status
-            )}`}
+            key={meet.id}
+            onClick={() => {
+              if (isCompleted) {
+                router.push(`/meetings/${meet.id}/view`)
+              }
+            }}
+            className={`flex items-center justify-between rounded-lg border border-border bg-sidebar-accent/30 p-4 transition
+              ${
+                isCompleted
+                  ? "cursor-pointer hover:bg-sidebar-accent/50"
+                  : "cursor-not-allowed opacity-60"
+              }`}
           >
-            {meet.status}
+            {/* Left */}
+            <div className="space-y-1">
+              <div className="font-medium text-foreground">
+                {meet.title}
+              </div>
+
+              <div className="text-xs text-muted-foreground">
+                {new Date(meet.startTime).toLocaleString()} →{" "}
+                {new Date(meet.endTime).toLocaleString()}
+              </div>
+            </div>
+
+            {/* Right */}
+            <div
+              className={`rounded-md px-3 py-1 text-xs font-semibold ${statusColor(
+                meet.status
+              )}`}
+            >
+              {meet.status}
+            </div>
           </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

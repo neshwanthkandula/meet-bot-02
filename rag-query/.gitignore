@@ -1,0 +1,100 @@
+# ----------------------------------
+# Python bytecode / cache
+# ----------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ----------------------------------
+# Virtual environments
+# ----------------------------------
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ----------------------------------
+# Packaging / build artifacts
+# ----------------------------------
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+MANIFEST
+
+# ----------------------------------
+# Installer logs
+# ----------------------------------
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ----------------------------------
+# Unit test / coverage reports
+# ----------------------------------
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# ----------------------------------
+# Type checker / linters
+# ----------------------------------
+.mypy_cache/
+.pyre/
+.pytype/
+
+# ----------------------------------
+# Jupyter Notebook
+# ----------------------------------
+.ipynb_checkpoints/
+
+# ----------------------------------
+# Logs & runtime files
+# ----------------------------------
+*.log
+*.pid
+*.seed
+
+# ----------------------------------
+# Environment variables / secrets
+# ----------------------------------
+.env
+.env.*
+*.key
+*.pem
+
+# ----------------------------------
+# OS files
+# ----------------------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------------------
+# IDEs / editors
+# ----------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ----------------------------------
+# Optional: PyCharm specific
+# ----------------------------------
+# .idea/
+
+# ----------------------------------
+# Optional: Django / Flask
+# ----------------------------------
+# local_settings.py
+# instance/
+# *.sqlite3

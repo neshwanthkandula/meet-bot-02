@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+
+# Vector DB
+pinecone
+
+# Embeddings
+sentence-transformers
+numpy
+
+# Local LLM
+llama-cpp-python
+
+# Utilities
+pydantic
+python-dotenv

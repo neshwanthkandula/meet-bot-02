@@ -31,7 +31,11 @@ export function AppSidebar() {
             <SidebarMenu className="space-y-2 pt-10">
               {sidebarItems.map((item) => {
                 const Icon = item.icon
-                const isActive = pathname === item.href
+
+                const isActive =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(item.href)
 
                 return (
                   <SidebarMenuItem key={item.title}>
